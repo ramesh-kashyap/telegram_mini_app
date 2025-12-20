@@ -36,7 +36,7 @@ function useTelegramInitData() {
         initData[key] = firstLayerInitData[key];
       }
     }
-
+//  alert(import.meta.env.DEV);
     setData(import.meta.env.DEV ? fakeData : initData);
   }, []);
 

@@ -17,6 +17,7 @@ const isDisktop = import.meta.env.DEV
   ? false
   : Telegram.WebApp.platform === "tdesktop";
 
+  // alert(import.meta.env.DEV);
 function App() {
   const userStore = useUserStore();
   const { levels, levelUp } = uesStore();
