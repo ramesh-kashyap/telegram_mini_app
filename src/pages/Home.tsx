@@ -57,7 +57,7 @@ export default function Home() {
           <div
             className="bg-[linear-gradient(180deg,#FBEDE0_0%,#F7B87D_21%,#F3A155_52%,#E6824B_84%,#D36224_100%)] h-full"
             style={{
-              width: `${(user.balance! / user.level!.to_balance) * 100}%`,
+              // width: `${(user.balance! / user.level!.to_balance) * 100}%`,
             }}
           ></div>
         </div>
