@@ -18,7 +18,7 @@ export default function Home() {
       <header className="flex items-center justify-between mt-4">
         <div className="flex items-center gap-2 px-3 py-2 border-2 rounded-full bg-black/20 border-white/10">
           <img
-            src="/images/avatar.png"
+            src="/images/levels/Frog-1.png"
             alt="user-avatar"
             className="object-cover w-8 h-8 rounded-full"
           />
@@ -57,7 +57,7 @@ export default function Home() {
           <div
             className="bg-[linear-gradient(180deg,#FBEDE0_0%,#F7B87D_21%,#F3A155_52%,#E6824B_84%,#D36224_100%)] h-full"
             style={{
-              width: `${(user.balance! / user.level!.to_balance) * 100}%`,
+              // width: `${(user.balance! / user.level!.to_balance) * 100}%`,
             }}
           ></div>
         </div>
