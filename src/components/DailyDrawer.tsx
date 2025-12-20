@@ -54,7 +54,7 @@ export default function DailyDrawer({ ...props }: DrawerProps) {
           >
             <p className="text-sm font-medium">{item.name}</p>
             <img
-              src="/images/coin.png"
+              src="/images/coins.png"
               alt="coin"
               className="object-contain w-5 h-5"
             />
