@@ -14,7 +14,7 @@ export default function UserGameDetails({
       <div className="flex flex-col items-center justify-center flex-1 p-2 select-none bg-white/10 backdrop-blur-sm rounded-xl">
         <p className="mb-1 text-xs text-center">Earn per tap</p>
         <div className="inline-flex items-center space-x-1.5 text-white font-bold">
-          <img className="object-contain w-5 h-5" src="/images/coin.png" />{" "}
+          <img className="object-contain w-5 h-5" src="/images/coins.png" />{" "}
           <span className="text-sm">+{user?.earn_per_tap}</span>
         </div>
       </div>
@@ -31,7 +31,7 @@ export default function UserGameDetails({
       <div className="flex flex-col items-center justify-center flex-1 p-2 select-none bg-white/10 backdrop-blur-sm rounded-xl">
         <p className="mb-1 text-xs text-center">Profit per hour</p>
         <div className="inline-flex items-center space-x-1.5 text-white font-bold">
-          <img className="object-contain w-5 h-5" src="/images/coin.png" />
+          <img className="object-contain w-5 h-5" src="/images/coins.png" />
           <span className="text-sm">
             +{compactNumber(user.production_per_hour)}
           </span>
