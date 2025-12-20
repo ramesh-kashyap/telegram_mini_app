@@ -50,7 +50,7 @@ export default function Friends() {
               <p>Invite a friend</p>
               <div className="flex items-center space-x-1">
                 <img
-                  src="/images/coin.png"
+                  src="/images/coins.png"
                   alt="coin"
                   className="object-contain w-5 h-5"
                 />
@@ -71,7 +71,7 @@ export default function Friends() {
               <p>Invite a friend with Telegram premium</p>
               <div className="flex items-center space-x-1">
                 <img
-                  src="/images/coin.png"
+                  src="/images/coins.png"
                   alt="coin"
                   className="object-contain w-5 h-5"
                 />
