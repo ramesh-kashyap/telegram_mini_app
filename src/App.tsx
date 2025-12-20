@@ -13,11 +13,11 @@ import { toast } from "react-toastify";
 import useTelegramInitData from "./hooks/useTelegramInitData";
 
 const webApp = window.Telegram.WebApp;
-const isDisktop = import.meta.env.DEV
+const isDisktop = import.meta.env.VITE_DEV
   ? false
   : Telegram.WebApp.platform === "tdesktop";
 
-  // alert(import.meta.env.DEV);
+  // alert(import.meta.env.VITE_DEV);
 function App() {
   const userStore = useUserStore();
   const { levels, levelUp } = uesStore();
@@ -70,7 +70,7 @@ function App() {
 
   useEffect(() => {
     if (!user) return () => {};
-
+//  alert(localStorage.getItem("token"));
     const signIn = async () => {
       if (localStorage.getItem("token") === null) {
         const { data } = await $http.post<{
