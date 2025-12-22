@@ -38,7 +38,7 @@ function useTelegramInitData() {
   }
 
   const useFake = import.meta.env.VITE_DEV === "true";
-  // alert("VITE_USE_FAKE_TELEGRAM =" + import.meta.env.VITE_DEV);
+  // alert(JSON.stringify(initData));
     setData(useFake ? fakeData : initData);
   }, []);
 
