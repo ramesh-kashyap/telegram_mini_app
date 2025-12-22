@@ -37,3 +37,11 @@ export type DailyBoosterType = {
   uses_today: number;
   next_available_at: string | null;
 };
+
+export type HistoryType = {
+  id: number;
+  type: string;
+  amount: number;
+  token: "USDT" | "OFT";
+  created_at: string;
+};

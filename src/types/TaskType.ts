@@ -30,3 +30,13 @@ export type ReferralTaskType = {
   reward: number;
   is_completed?: boolean | null;
 };
+
+export type DepositType = {
+  id: number;
+  network: "BSC" | "TRON";
+  currency: "USDT";
+  address: string;
+  qr_code: string;
+  min_amount: number;
+  status?: "active" | "expired";
+};
