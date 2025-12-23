@@ -1,33 +1,69 @@
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { $http } from "@/lib/http";
+import LoadingPage from "@/components/LoadingPage";
+import { toast } from "sonner";
 
 type Token = "OFT" | "USDT";
-
-const TOKENS = {
-  OFT: {
-    symbol: "OFT",
-    icon: "/images/logo.png", // put OFT icon here
-    balance: 1250,
-  },
-  USDT: {
-    symbol: "USDT",
-    icon: "https://cryptologos.cc/logos/tether-usdt-logo.svg?v=040",
-    balance: 320,
-  },
-};
 
 export default function Swap() {
   const [fromToken, setFromToken] = useState<Token>("OFT");
   const [toToken, setToToken] = useState<Token>("USDT");
   const [amount, setAmount] = useState("");
 
-  // mock rate
-  const rate = fromToken === "OFT" ? 0.02 : 50;
+  /* =======================
+     GET BALANCE + PRICE
+  ======================= */
+  const {
+    data,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["swap-info"],
+    queryFn: () =>
+      $http.$get<{
+        balances: { USDT: number; OFT: number };
+        price: { OFT_USDT: number; USDT_OFT: number };
+      }>("/swap/info"),
+  });
+
+  const balances = data?.balances ?? { USDT: 0, OFT: 0 };
+
+  const rate =
+    fromToken === "OFT"
+      ? data?.price?.OFT_USDT
+      : data?.price?.USDT_OFT;
 
   const receiveAmount = useMemo(() => {
-    if (!amount) return "";
-    return (Number(amount) * rate).toFixed(4);
+    if (!amount || !rate) return "";
+    return (Number(amount) * rate).toFixed(6);
   }, [amount, rate]);
+
+  /* =======================
+     SUBMIT SWAP
+  ======================= */
+  const swapMutation = useMutation({
+    mutationFn: () =>
+      $http.post("/swap/submit", {
+        from: fromToken,
+        to: toToken,
+        amount: Number(amount),
+      }),
+
+    onSuccess: (res: any) => {
+      toast.success(res?.message || "Swap completed successfully");
+      setAmount("");
+      refetch();
+    },
+
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message ||
+          "Swap failed. Please try again"
+      );
+    },
+  });
 
   const switchTokens = () => {
     setFromToken(toToken);
@@ -36,45 +72,42 @@ export default function Swap() {
   };
 
   const setMax = () => {
-    setAmount(String(TOKENS[fromToken].balance));
+    setAmount(String(balances[fromToken]));
   };
+
+  /* =======================
+     LOADER
+  ======================= */
+  if (isLoading) return <LoadingPage />;
 
   return (
     <div className="flex flex-col justify-end bg-[url('/images/bg.png')] bg-cover flex-1">
       <div className="flex flex-col flex-1 w-full h-full px-6 py-8 pb-24 mt-12 modal-body">
 
-        {/* Header */}
         <h1 className="text-2xl font-bold text-center uppercase">
           Swap
         </h1>
 
-        {/* FROM CARD */}
+        {/* FROM */}
         <div className="mt-6 p-4 rounded-xl bg-[#1b1b1b]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <img
-                src={TOKENS[fromToken].icon}
-                className="w-6 h-6"
-                alt={fromToken}
-              />
-              <span className="font-semibold">{fromToken}</span>
-            </div>
+          <div className="flex justify-between">
+            <span className="font-semibold">{fromToken}</span>
             <span className="text-sm text-gray-400">
-              Balance: {TOKENS[fromToken].balance}
+              Balance: {balances[fromToken]}
             </span>
           </div>
 
-          <div className="flex items-center mt-4">
+          <div className="flex mt-4">
             <input
               type="number"
-              placeholder="0.0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.0"
               className="flex-1 bg-transparent outline-none text-2xl font-bold"
             />
             <button
               onClick={setMax}
-              className="px-3 py-1 ml-2 text-sm rounded-md bg-[#27D46C] text-black font-semibold"
+              className="ml-2 px-3 py-1 rounded-md bg-[#27D46C] text-black font-semibold"
             >
               MAX
             </button>
@@ -85,25 +118,18 @@ export default function Swap() {
         <div className="flex justify-center my-5">
           <button
             onClick={switchTokens}
-            className="p-3 rounded-full bg-[#27D46C] text-black text-xl font-bold shadow-lg"
+            className="p-3 rounded-full bg-[#27D46C] text-black text-xl font-bold"
           >
             ⇅
           </button>
         </div>
 
-        {/* TO CARD */}
+        {/* TO */}
         <div className="p-4 rounded-xl bg-[#1b1b1b]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <img
-                src={TOKENS[toToken].icon}
-                className="w-6 h-6"
-                alt={toToken}
-              />
-              <span className="font-semibold">{toToken}</span>
-            </div>
+          <div className="flex justify-between">
+            <span className="font-semibold">{toToken}</span>
             <span className="text-sm text-gray-400">
-              Balance: {TOKENS[toToken].balance}
+              Balance: {balances[toToken]}
             </span>
           </div>
 
@@ -113,30 +139,27 @@ export default function Swap() {
         </div>
 
         {/* RATE */}
-        <div className="mt-4 p-3 text-sm text-center rounded-lg bg-[#1b1b1b] text-gray-400">
+        <div className="mt-4 text-center text-sm text-gray-400">
           1 {fromToken} ≈ {rate} {toToken}
         </div>
 
-        {/* SWAP BUTTON */}
+        {/* SUBMIT */}
         <button
-          disabled={!amount || Number(amount) <= 0}
+          disabled={
+            swapMutation.isLoading ||
+            !amount ||
+            Number(amount) <= 0
+          }
+          onClick={() => swapMutation.mutate()}
           className={cn(
             "mt-6 w-full py-3 rounded-xl font-bold text-black transition-all",
-            amount
-              ? "bg-[#27D46C]"
-              : "bg-gray-500 cursor-not-allowed"
+            swapMutation.isLoading || !amount
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-[#27D46C]"
           )}
         >
-          Swap {fromToken} → {toToken}
+          {swapMutation.isLoading ? "Swapping..." : "Swap"}
         </button>
-
-        {/* INFO */}
-        <div className="mt-6 p-4 bg-[#1b1b1b] rounded-xl text-sm space-y-2">
-          <p>• Instant swap execution</p>
-          <p>• Rate updates dynamically</p>
-          <p>• Minimum swap amount applies</p>
-          <p>• Network fees included</p>
-        </div>
 
       </div>
     </div>
