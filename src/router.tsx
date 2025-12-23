@@ -6,7 +6,8 @@ import Leaderboard from "./pages/Leaderboard";
 import Earn from "./pages/Earn";
 import Friends from "./pages/Friends";
 import Missions from "./pages/Missions";
-
+import wallet from "./pages/Wallet";
+import Wallet from "./pages/Wallet";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: "missions",
         element: <Missions />,
+      },
+      {
+        path: "wallet",
+        element : <Wallet/>,
       },
     ],
   },
