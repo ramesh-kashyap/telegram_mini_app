@@ -13,11 +13,18 @@ import { toast } from "react-toastify";
 import useTelegramInitData from "./hooks/useTelegramInitData";
 
 const webApp = window.Telegram.WebApp;
-const isDisktop = import.meta.env.DEV
+const isDisktop = import.meta.env.VITE_DEV
   ? false
   : Telegram.WebApp.platform === "tdesktop";
+const tg = window.Telegram.WebApp;
+const startParam = tg.initDataUnsafe?.start_param;
 
-  // alert(import.meta.env.DEV);
+if (startParam) {
+  localStorage.setItem("referral", startParam);
+}
+
+
+// alert(import.meta.env.VITE_DEV);
 function App() {
   const userStore = useUserStore();
   const { levels, levelUp } = uesStore();
@@ -25,6 +32,7 @@ function App() {
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [isFirstLoad, setIsFirstLoad] = useState(false);
   const balance = useDebounce(userStore.balance, 500);
+
 
   useEffect(() => {
     webApp.setHeaderColor("#000");
@@ -69,8 +77,10 @@ function App() {
   }, [balance, levels]);
 
   useEffect(() => {
-    if (!user) return () => {};
+    if (!user) return () => { };
+    const referral = localStorage.getItem("referral");
 
+    // alert(JSON.stringify({ referral }));
     const signIn = async () => {
       if (localStorage.getItem("token") === null) {
         const { data } = await $http.post<{
@@ -83,7 +93,7 @@ function App() {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           username: user.username,
-          referred_by: start_param?.replace("ref", ""),
+          referred_by: referral?.replace("ref", ""),
         });
         setBearerToken(data.token);
         setIsFirstLoad(data.first_login);
@@ -116,10 +126,13 @@ function App() {
 
     signIn().then(() => setShowSplashScreen(false));
   }, [user]);
+  
 
   if (!user || isDisktop) return <PlayOnYourMobile />;
 
   if (showSplashScreen) return <SplashScreen />;
+
+   
 
   if (isFirstLoad)
     return <FirstTimeScreen startGame={() => setIsFirstLoad(false)} />;

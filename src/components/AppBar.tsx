@@ -3,9 +3,10 @@ import { cn } from "../lib/utils";
 
 const links = [
   { name: "Explore", link: "/", image: "/images/explore.png" },
-  { name: "Missions", link: "/missions", image: "/images/missions.png" },
+  { name: "Upgrade", link: "/upgrade", image: "/images/missions.png" },
   { name: "Friends", link: "/friends", image: "/images/friends.png" },
   { name: "Bounty", link: "/earn", image: "/images/bounty.png" },
+  { name: "Assets", link: "/assets", image: "/images/icons8-wallet-96.png" },
 ];
 
 export default function AppBar() {

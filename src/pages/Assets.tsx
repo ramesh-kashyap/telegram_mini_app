@@ -1,0 +1,231 @@
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { $http } from "@/lib/http";
+import LoadingPage from "@/components/LoadingPage";
+import { Currency } from "lucide-react";
+
+const ICONS = {
+  USDT: "https://cryptologos.cc/logos/tether-usdt-logo.svg?v=040",
+  OFT: "/images/logo.png",
+};
+
+export default function Assets() {
+  const navigate = useNavigate();
+
+  /** 🔹 ASSETS API (balances + income cards) */
+  const { data: assetsRes, isLoading: assetsLoading } = useQuery({
+    queryKey: ["assets"],
+    queryFn: () =>
+      $http.$get<{
+        balances: {
+          USDT: number;
+          OFT: number;
+        };
+        income_cards: {
+          totalPackage: number;
+          daily_roi: number;
+          referral_income: number;
+          level_income: number;
+          salary_income: number;
+          reward_income: number;
+          total_earned: number;
+          total_withdrawal: number;
+        };
+      }>("/assets"),
+  });
+
+  /** 🔹 RECENT HISTORY API (same as before) */
+  const { data: historyRes, isLoading: historyLoading } = useQuery({
+    queryKey: ["recent-history"],
+    queryFn: () =>
+      $http.$get<{
+        data: {
+          id: number;
+          type: string;
+          amount: number;
+          token: string;
+          created_at: string;
+        }[];
+      }>("/history", {
+        params: { page: 1, per_page: 6 },
+      }),
+  });
+
+  if (assetsLoading || historyLoading) return <LoadingPage />;
+
+  const balances = assetsRes?.balances ?? { USDT: 0, OFT: 0 };
+  const incomeCards = assetsRes?.income_cards;
+  const recentHistory = historyRes?.data ?? [];
+
+  const incomeList = [
+    { label: "My Package", value: incomeCards?.totalPackage ?? 0 , CurrencyIcon:"USDT" },
+    { label: "Daily ROI", value: incomeCards?.daily_roi ?? 0 , CurrencyIcon:"OFT" },
+    { label: "Referral Income", value: incomeCards?.referral_income ?? 0  , CurrencyIcon:"OFT"},
+    { label: "Level Income", value: incomeCards?.level_income ?? 0 , CurrencyIcon:"OFT"},
+    { label: "Salary Income", value: incomeCards?.salary_income ?? 0 , CurrencyIcon:"OFT"},
+    { label: "Reward Income", value: incomeCards?.reward_income ?? 0 , CurrencyIcon:"OFT"},
+    { label: "Total Withdrawal", value: incomeCards?.total_withdrawal ?? 0 , CurrencyIcon:"USDT"},
+  ];
+
+    const ACTIONS = [
+    {
+        label: "Recharge",
+        icon: "/images/icons8-deposit-48.png", // replace with your icon
+        route: "/deposit",
+    },
+    {
+        label: "Withdraw",
+        icon: "/images/icons8-withdraw-24.png",
+        route: "/withdraw",
+    },
+    {
+        label: "Reports",
+        icon: "/images/icons8-report-50.png",
+        route: "/history",
+    },
+    {
+        label: "OFT & USDT",
+        icon: "/images/icons8-exchange-64.png",
+        route: "/swap",
+    },
+    ];
+
+
+  return (
+    <div className="flex flex-col justify-end bg-[url('/images/bg.png')] bg-cover flex-1">
+      <div className="flex flex-col flex-1 w-full h-full px-6 py-8 pb-24 mt-12 modal-body">
+
+        {/* HEADER */}
+        <h1 className="text-2xl font-bold text-center uppercase">
+          Assets
+        </h1>
+
+        {/* BALANCES */}
+        <div className="mt-6 grid grid-cols-2 gap-4">
+          <div className="p-4 bg-[#1b1b1b] rounded-xl text-center">
+            <div className="flex justify-center items-center gap-2">
+              <img src={ICONS.USDT} className="w-6 h-6" />
+              <p className="text-sm text-gray-400">USDT Balance</p>
+            </div>
+            <p className="mt-1 text-l font-bold">
+              {balances.USDT.toLocaleString()} USDT
+            </p>
+          </div>
+
+          <div className="p-4 bg-[#1b1b1b] rounded-xl text-center">
+            <div className="flex justify-center items-center gap-2">
+              <img src={ICONS.OFT} className="w-6 h-6" />
+              <p className="text-sm text-gray-400">OFT Balance</p>
+            </div>
+            <p className="mt-1 text-l font-bold">
+              {balances.OFT.toLocaleString()} OFT
+            </p>
+          </div>
+        </div>
+
+        {/* DEPOSIT / WITHDRAW */}
+            <div className="mt-6 grid grid-cols-4 gap-4">
+            {ACTIONS.map((item) => (
+                <button
+                key={item.label}
+                onClick={() => navigate(item.route)}
+                className="
+                    flex flex-col items-center justify-center
+                    rounded-2xl
+                    py-4
+                    transition
+                    active:scale-95
+                "
+                >
+                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-[#232323]">
+                    <img
+                    src={item.icon}
+                    className="w-7 h-7"
+                    alt={item.label}
+                    />
+                </div>
+
+                <p className="mt-3 text-sm text-center leading-tight whitespace-pre-line">
+                    {item.label}
+                </p>
+                </button>
+            ))}
+            </div>
+
+        {/* INCOME CARDS */}
+        <p className="mt-8 font-medium text-center">
+          Earnings Overview
+        </p>
+
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          {incomeList.map((item) => (
+            <div
+              key={item.label}
+              className="p-4 bg-[#1b1b1b] rounded-xl text-center"
+            >
+              <p className="text-sm text-gray-400">{item.label}</p>
+              <p className="mt-1 font-bold">
+                {item.value.toLocaleString()} {item.CurrencyIcon}
+              </p>
+            </div>
+          ))}
+
+          {/* TOTAL */}
+          <div className="col-span-2 p-4 bg-[#27D46C] rounded-xl text-center text-black">
+            <p className="text-sm font-semibold">Total Earned</p>
+            <p className="mt-1 text-xl font-bold">
+              +{incomeCards?.total_earned?.toLocaleString() ?? 0} OFT
+            </p>
+          </div>
+        </div>
+
+        {/* RECENT HISTORY */}
+        <p className="mt-8 font-medium text-center">
+          Recent History
+        </p>
+
+        <div className="mt-4 space-y-2">
+          {recentHistory.length === 0 && (
+            <p className="text-center text-gray-400">
+              No recent history
+            </p>
+          )}
+
+          {recentHistory.map((item) => {
+            const isNegative =
+              item.type === "Withdrawal" || item.type === "Buy Package";
+
+            return (
+              <div
+                key={`${item.type}-${item.id}`}
+                className="flex justify-between items-center p-4 bg-[#1b1b1b] rounded-xl"
+              >
+                <div>
+                  <p className="font-medium">{item.type}</p>
+                  <p className="text-xs text-gray-400">
+                    {new Date(item.created_at).toLocaleDateString()}{" "}
+                    {new Date(item.created_at).toLocaleTimeString()}
+                  </p>
+                </div>
+
+                <div
+                  className={cn(
+                    "font-bold",
+                    isNegative ? "text-red-500" : "text-green-500"
+                  )}
+                >
+                  {isNegative ? "-" : "+"}
+                  {item.amount} {item.token}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* VIEW ALL */}
+       
+      </div>
+    </div>
+  );
+}

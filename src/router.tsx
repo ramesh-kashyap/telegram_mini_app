@@ -6,6 +6,12 @@ import Leaderboard from "./pages/Leaderboard";
 import Earn from "./pages/Earn";
 import Friends from "./pages/Friends";
 import Missions from "./pages/Missions";
+import Deposit from "./pages/Deposit";
+import Swap from "./pages/Swap";
+import Withdraw from "./pages/Withdraw";
+import Assets from "./pages/Assets";
+import History from "./pages/History";
+import Upgrade from "./pages/Upgrade";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +42,30 @@ const router = createBrowserRouter([
       {
         path: "missions",
         element: <Missions />,
+      },
+       {
+        path: "deposit",
+        element: <Deposit />,
+      },
+      {
+        path: "swap",
+        element: <Swap />,
+      },
+       {
+        path: "withdraw",
+        element: <Withdraw />,
+      },
+      {
+        path: "assets",
+        element: <Assets />,
+      },
+      {
+        path: "history",
+        element: <History />,
+      },
+      {
+        path: "upgrade",
+        element: <Upgrade />,
       },
     ],
   },

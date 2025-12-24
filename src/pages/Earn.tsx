@@ -57,7 +57,7 @@ export default function Earn() {
         </h1>
         {videoTasks.length > 0 && (
           <>
-            <p className="mt-2.5 font-medium text-center">Cool Frog YouTube</p>
+            <p className="mt-2.5 font-medium text-center">OFT Money YouTube</p>
             <div className="mt-4 space-y-2">
               {videoTasks.map((item) => (
                 <ListItem
