@@ -11,7 +11,6 @@ import PlayOnYourMobile from "./pages/PlayOnYourMobile";
 import { useDebounce } from "@uidotdev/usehooks";
 import { toast } from "react-toastify";
 import useTelegramInitData from "./hooks/useTelegramInitData";
-import { Toaster } from "sonner";
 
 const webApp = window.Telegram.WebApp;
 const isDisktop = import.meta.env.VITE_DEV
@@ -133,12 +132,8 @@ function App() {
 
   if (showSplashScreen) return <SplashScreen />;
 
-   <Toaster
-        position="top-center"
-        richColors
-        closeButton
-      />
-      
+   
+
   if (isFirstLoad)
     return <FirstTimeScreen startGame={() => setIsFirstLoad(false)} />;
 

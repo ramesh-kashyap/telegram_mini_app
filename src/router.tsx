@@ -11,6 +11,7 @@ import Swap from "./pages/Swap";
 import Withdraw from "./pages/Withdraw";
 import Assets from "./pages/Assets";
 import History from "./pages/History";
+import Upgrade from "./pages/Upgrade";
 
 const router = createBrowserRouter([
   {
@@ -61,6 +62,10 @@ const router = createBrowserRouter([
       {
         path: "history",
         element: <History />,
+      },
+      {
+        path: "upgrade",
+        element: <Upgrade />,
       },
     ],
   },

@@ -75,6 +75,25 @@ export default function Swap() {
     setAmount(String(balances[fromToken]));
   };
 
+
+  const { data: swapHistoryRes, isLoading: historyLoading } = useQuery({
+  queryKey: ["swap-history"],
+  queryFn: () =>
+    $http.$get<{
+      data: {
+        id: number;
+        type: string;
+        amount: number;
+        receive: number;
+        from_token: Token;
+        to_token: Token;
+        created_at: string;
+      }[];
+    }>("/swap/history"),
+});
+
+const swapHistory = swapHistoryRes?.data ?? [];
+
   /* =======================
      LOADER
   ======================= */
@@ -160,6 +179,56 @@ export default function Swap() {
         >
           {swapMutation.isLoading ? "Swapping..." : "Swap"}
         </button>
+
+
+        {/* =======================
+    SWAP HISTORY
+======================= */}
+<p className="mt-10 font-medium text-center">
+  Swap History
+</p>
+
+<div className="mt-4 space-y-2">
+  {historyLoading && (
+    <p className="text-center text-gray-400">Loading history...</p>
+  )}
+
+  {!historyLoading && swapHistory.length === 0 && (
+    <p className="text-center text-gray-400">
+      No swap history yet
+    </p>
+  )}
+
+  {swapHistory.map((item) => {
+    const isDebit = item.from_token === "OFT";
+
+    return (
+      <div
+        key={item.id}
+        className="flex justify-between items-center p-4 bg-[#1b1b1b] rounded-xl"
+      >
+        <div>
+          <p className="font-medium">{item.type}</p>
+          <p className="text-xs text-gray-400">
+            {new Date(item.created_at).toLocaleDateString()}{" "}
+            {new Date(item.created_at).toLocaleTimeString()}
+          </p>
+        </div>
+
+        <div
+          className={cn(
+            "font-bold",
+            isDebit ? "text-red-500" : "text-green-500"
+          )}
+        >
+          {isDebit ? "-" : "+"}
+          {item.amount} {item.from_token}
+        </div>
+      </div>
+    );
+  })}
+</div>
+
 
       </div>
     </div>

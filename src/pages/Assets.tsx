@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { $http } from "@/lib/http";
 import LoadingPage from "@/components/LoadingPage";
+import { Currency } from "lucide-react";
 
 const ICONS = {
   USDT: "https://cryptologos.cc/logos/tether-usdt-logo.svg?v=040",
@@ -22,12 +23,14 @@ export default function Assets() {
           OFT: number;
         };
         income_cards: {
+          totalPackage: number;
           daily_roi: number;
           referral_income: number;
           level_income: number;
           salary_income: number;
           reward_income: number;
           total_earned: number;
+          total_withdrawal: number;
         };
       }>("/assets"),
   });
@@ -56,12 +59,38 @@ export default function Assets() {
   const recentHistory = historyRes?.data ?? [];
 
   const incomeList = [
-    { label: "Daily ROI", value: incomeCards?.daily_roi ?? 0 },
-    { label: "Referral Income", value: incomeCards?.referral_income ?? 0 },
-    { label: "Level Income", value: incomeCards?.level_income ?? 0 },
-    { label: "Salary Income", value: incomeCards?.salary_income ?? 0 },
-    { label: "Reward Income", value: incomeCards?.reward_income ?? 0 },
+    { label: "My Package", value: incomeCards?.totalPackage ?? 0 , CurrencyIcon:"USDT" },
+    { label: "Daily ROI", value: incomeCards?.daily_roi ?? 0 , CurrencyIcon:"OFT" },
+    { label: "Referral Income", value: incomeCards?.referral_income ?? 0  , CurrencyIcon:"OFT"},
+    { label: "Level Income", value: incomeCards?.level_income ?? 0 , CurrencyIcon:"OFT"},
+    { label: "Salary Income", value: incomeCards?.salary_income ?? 0 , CurrencyIcon:"OFT"},
+    { label: "Reward Income", value: incomeCards?.reward_income ?? 0 , CurrencyIcon:"OFT"},
+    { label: "Total Withdrawal", value: incomeCards?.total_withdrawal ?? 0 , CurrencyIcon:"USDT"},
   ];
+
+    const ACTIONS = [
+    {
+        label: "Recharge",
+        icon: "/images/icons8-deposit-48.png", // replace with your icon
+        route: "/deposit",
+    },
+    {
+        label: "Withdraw",
+        icon: "/images/icons8-withdraw-24.png",
+        route: "/withdraw",
+    },
+    {
+        label: "Reports",
+        icon: "/images/icons8-report-50.png",
+        route: "/history",
+    },
+    {
+        label: "OFT & USDT",
+        icon: "/images/icons8-exchange-64.png",
+        route: "/swap",
+    },
+    ];
+
 
   return (
     <div className="flex flex-col justify-end bg-[url('/images/bg.png')] bg-cover flex-1">
@@ -79,7 +108,7 @@ export default function Assets() {
               <img src={ICONS.USDT} className="w-6 h-6" />
               <p className="text-sm text-gray-400">USDT Balance</p>
             </div>
-            <p className="mt-1 text-xl font-bold">
+            <p className="mt-1 text-l font-bold">
               {balances.USDT.toLocaleString()} USDT
             </p>
           </div>
@@ -89,30 +118,40 @@ export default function Assets() {
               <img src={ICONS.OFT} className="w-6 h-6" />
               <p className="text-sm text-gray-400">OFT Balance</p>
             </div>
-            <p className="mt-1 text-xl font-bold">
+            <p className="mt-1 text-l font-bold">
               {balances.OFT.toLocaleString()} OFT
             </p>
           </div>
         </div>
 
         {/* DEPOSIT / WITHDRAW */}
-        <div className="mt-5 grid grid-cols-2 gap-4">
-          <button
-            onClick={() => navigate("/deposit")}
-            className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-[#27D46C] text-black"
-          >
-            <img src={ICONS.USDT} className="w-5 h-5" />
-            Deposit
-          </button>
+            <div className="mt-6 grid grid-cols-4 gap-4">
+            {ACTIONS.map((item) => (
+                <button
+                key={item.label}
+                onClick={() => navigate(item.route)}
+                className="
+                    flex flex-col items-center justify-center
+                    rounded-2xl
+                    py-4
+                    transition
+                    active:scale-95
+                "
+                >
+                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-[#232323]">
+                    <img
+                    src={item.icon}
+                    className="w-7 h-7"
+                    alt={item.label}
+                    />
+                </div>
 
-          <button
-            onClick={() => navigate("/withdraw")}
-            className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-[#1b1b1b] border border-[#27D46C] text-[#27D46C]"
-          >
-            <img src={ICONS.USDT} className="w-5 h-5" />
-            Withdraw
-          </button>
-        </div>
+                <p className="mt-3 text-sm text-center leading-tight whitespace-pre-line">
+                    {item.label}
+                </p>
+                </button>
+            ))}
+            </div>
 
         {/* INCOME CARDS */}
         <p className="mt-8 font-medium text-center">
@@ -127,7 +166,7 @@ export default function Assets() {
             >
               <p className="text-sm text-gray-400">{item.label}</p>
               <p className="mt-1 font-bold">
-                {item.value.toLocaleString()} OFT
+                {item.value.toLocaleString()} {item.CurrencyIcon}
               </p>
             </div>
           ))}
@@ -185,13 +224,7 @@ export default function Assets() {
         </div>
 
         {/* VIEW ALL */}
-        <button
-          onClick={() => navigate("/history")}
-          className="mt-6 w-full py-3 rounded-xl font-bold bg-[#27D46C] text-black"
-        >
-          View All History
-        </button>
-
+       
       </div>
     </div>
   );

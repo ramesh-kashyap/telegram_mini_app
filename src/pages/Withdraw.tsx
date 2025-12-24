@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import ListItem from "@/components/ListItem";
 import { cn } from "@/lib/utils";
 import CheckIcon from "@/components/icons/CheckIcon";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { $http } from "@/lib/http";
+import { toast } from "sonner";
+import LoadingPage from "@/components/LoadingPage";
 
 const NETWORKS = [
   {
@@ -21,23 +25,53 @@ export default function Withdraw() {
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
 
-  // 🔹 mock balance (replace with API/store later)
-  const balance = 250.75; // USDT
+  /* 🔹 LIVE BALANCE */
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["balances"],
+    queryFn: () =>
+      $http.$get<{ balances: { USDT: number } }>("/swap/info"),
+  });
+
+  const balance = data?.balances.USDT ?? 0;
+
+  /* 🔹 CALCULATIONS */
+  const numericAmount = Number(amount) || 0;
+  const fee = useMemo(() => numericAmount * 0.1, [numericAmount]);
+  const netAmount = useMemo(
+    () => Math.max(numericAmount - fee, 0),
+    [numericAmount, fee]
+  );
 
   const isValid =
     address.length > 10 &&
-    Number(amount) > 0 &&
-    Number(amount) <= balance;
+    numericAmount >= 5 &&
+    numericAmount <= balance;
 
-  const setMaxAmount = () => {
-    setAmount(String(balance));
-  };
+  /* 🔹 SUBMIT */
+  const withdrawMutation = useMutation({
+    mutationFn: () =>
+      $http.post("/withdraw", {
+        network,
+        address,
+        amount: numericAmount,
+      }),
+    onSuccess: () => {
+      toast.success("Withdrawal request submitted ✅");
+      setAmount("");
+      setAddress("");
+      refetch();
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Withdraw failed");
+    },
+  });
+
+  if (isLoading) return <LoadingPage />;
 
   return (
     <div className="flex flex-col justify-end bg-[url('/images/bg.png')] bg-cover flex-1">
       <div className="flex flex-col flex-1 w-full h-full px-6 py-8 pb-24 mt-12 modal-body">
 
-        {/* Header */}
         <h1 className="text-2xl font-bold text-center uppercase">
           Withdraw
         </h1>
@@ -78,12 +112,12 @@ export default function Withdraw() {
                   <CheckIcon className="w-6 h-6 text-[#27D46C]" />
                 ) : undefined
               }
-              onClick={() => setNetwork(item.key as "BSC" | "TRON")}
+              onClick={() => setNetwork(item.key as any)}
             />
           ))}
         </div>
 
-        {/* Wallet Address */}
+        {/* Wallet */}
         <p className="mt-8 font-medium text-center">Wallet Address</p>
         <div className="mt-4 p-4 bg-[#1b1b1b] rounded-xl">
           <input
@@ -91,7 +125,7 @@ export default function Withdraw() {
             placeholder={`Enter ${network} wallet address`}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="w-full bg-transparent outline-none text-sm break-all"
+            className="w-full bg-transparent outline-none text-sm"
           />
         </div>
 
@@ -100,41 +134,60 @@ export default function Withdraw() {
         <div className="mt-4 p-4 bg-[#1b1b1b] rounded-xl flex items-center gap-3">
           <input
             type="number"
-            placeholder="0.0"
+            placeholder="Minimum 5 USDT"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="flex-1 bg-transparent outline-none text-xl font-bold"
           />
           <button
-            onClick={setMaxAmount}
+            onClick={() => setAmount(String(balance))}
             className="px-3 py-1 text-sm rounded-md bg-[#27D46C] text-black font-semibold"
           >
             MAX
           </button>
         </div>
 
-        {/* Submit */}
+        {/* DEDUCTION */}
+        {numericAmount > 0 && (
+          <div className="mt-4 p-4 bg-[#1b1b1b] rounded-xl text-sm space-y-1">
+            <div className="flex justify-between">
+              <span>Withdrawal Amount</span>
+              <span>{numericAmount} USDT</span>
+            </div>
+            <div className="flex justify-between text-red-400">
+              <span>Fee (10%)</span>
+              <span>-{fee.toFixed(2)} USDT</span>
+            </div>
+            <div className="flex justify-between font-bold text-[#27D46C]">
+              <span>Net Payable</span>
+              <span>{netAmount.toFixed(2)} USDT</span>
+            </div>
+          </div>
+        )}
+
+        {/* SUBMIT */}
         <button
-          disabled={!isValid}
+          disabled={!isValid || withdrawMutation.isLoading}
+          onClick={() => withdrawMutation.mutate()}
           className={cn(
-            "mt-8 w-full py-3 rounded-xl font-bold text-black transition-all",
+            "mt-8 w-full py-3 rounded-xl font-bold text-black",
             isValid
               ? "bg-[#27D46C]"
               : "bg-gray-500 cursor-not-allowed"
           )}
         >
-          Withdraw USDT
+          {withdrawMutation.isLoading ? "Processing..." : "Withdraw USDT"}
         </button>
 
-        {/* Withdraw Rules */}
+        {/* RULES */}
         <p className="mt-8 font-medium text-center">Withdraw Rules</p>
         <div className="mt-4 p-4 bg-[#1b1b1b] rounded-xl text-sm space-y-2">
-          <p>• Minimum withdrawal amount applies</p>
-          <p>• Withdraw amount must not exceed balance</p>
+          <p>• Minimum withdrawal: 5 USDT</p>
+          <p>• 10% withdrawal fee applies</p>
+          <p>• Amount must not exceed available balance</p>
           <p>• Select correct network ({network})</p>
-          <p>• Wrong address or network will result in loss</p>
-          <p>• Withdrawals are processed within 24 hours</p>
-          <p>• Network fees may apply</p>
+          <p>• Wrong address/network may result in loss</p>
+          <p>• Withdrawals processed within 24 hours</p>
         </div>
 
       </div>
