@@ -11,12 +11,19 @@ export default function UserTap(props: React.HTMLProps<HTMLDivElement>) {
   const userTapButtonRef = useRef<HTMLButtonElement | null>(null);
   const [clicksCount, setClicksCount] = useState(0);
   const debounceClicksCount = useDebounce(clicksCount, 1000);
+  const [isTelegramActive, setIsTelegramActive] = useState(true);
+  const [checkingStatus, setCheckingStatus] = useState(true);
 
   const { clicks, addClick, removeClick } = useClicksStore();
   const { UserTap, incraseEnergy, ...user } = useUserStore();
 
   const tabMe = (e: React.MouseEvent) => {
     e.preventDefault();
+
+  // if (!isTelegramActive || checkingStatus) {
+  //   Telegram.WebApp.showAlert("Your Telegram account is not active.");
+  //   return;
+  // }
     if (!UserTap()) return;
 
     setClicksCount((prev) => prev + 1);
@@ -42,6 +49,20 @@ export default function UserTap(props: React.HTMLProps<HTMLDivElement>) {
       userTapButtonRef.current?.classList.remove("scale-95");
     }, 150);
   };
+
+  useEffect(() => {
+  $http
+    .get("/telegram/check-user-status")
+    .then(({ data }) => {
+      setIsTelegramActive(data.success === true);
+    })
+    .catch(() => {
+      setIsTelegramActive(false);
+    })
+    .finally(() => {
+      setCheckingStatus(false);
+    });
+}, []);
 
   useEffect(() => {
     const count = debounceClicksCount;
