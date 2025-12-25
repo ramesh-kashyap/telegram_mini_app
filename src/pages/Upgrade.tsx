@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { $http } from "@/lib/http";
 import { cn } from "@/lib/utils";
+import LoadingPage from "@/components/LoadingPage";
 
 type PackageType = {
   id: number;
@@ -71,6 +72,10 @@ console.log("Purchased Packages:", purchasedPackages);
     },
   });
 
+
+
+  if (purchasedLoading) return <LoadingPage />;
+
   return (
     <div className="flex flex-col bg-[url('/images/bg.png')] bg-cover flex-1">
       <div className="flex flex-col flex-1 px-6 py-8 pb-24 mt-12 modal-body">
@@ -122,7 +127,7 @@ console.log("Purchased Packages:", purchasedPackages);
 
                 {/* BUTTON */}
                <button
-              disabled={isPurchased || isLowerThanCurrent || buyMutation.isLoading}
+              disabled={isPurchased || isLowerThanCurrent || buyMutation.isPending}
               onClick={() => setSelected(pkg)}
               className={cn(
                 "mt-4 w-full py-2 rounded-lg font-bold text-sm",
@@ -171,11 +176,11 @@ console.log("Purchased Packages:", purchasedPackages);
             </div>
 
             <button
-              disabled={buyMutation.isLoading}
+              disabled={buyMutation.isPending}
               onClick={() => buyMutation.mutate(selected.id)}
               className="mt-6 w-full py-3 rounded-xl font-bold bg-[#27D46C] text-black"
             >
-              {buyMutation.isLoading ? "Processing..." : "Confirm Buy"}
+              {buyMutation.isPending ? "Processing..." : "Confirm Buy"}
             </button>
 
             <button

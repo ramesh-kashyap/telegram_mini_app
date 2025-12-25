@@ -167,7 +167,7 @@ export default function Withdraw() {
 
         {/* SUBMIT */}
         <button
-          disabled={!isValid || withdrawMutation.isLoading}
+          disabled={!isValid || withdrawMutation.isPending}
           onClick={() => withdrawMutation.mutate()}
           className={cn(
             "mt-8 w-full py-3 rounded-xl font-bold text-black",
@@ -176,7 +176,7 @@ export default function Withdraw() {
               : "bg-gray-500 cursor-not-allowed"
           )}
         >
-          {withdrawMutation.isLoading ? "Processing..." : "Withdraw USDT"}
+          {withdrawMutation.isPending ? "Processing..." : "Withdraw USDT"}
         </button>
 
         {/* RULES */}

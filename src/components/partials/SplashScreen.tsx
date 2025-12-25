@@ -20,13 +20,8 @@ const socialLinks = [
   },
 ];
 
-const splashScreenImages = [
-  "/images/splash-screen/bg.png",
-];
 
 export default function SplashScreen() {
-  const randomImage =
-    splashScreenImages[Math.floor(Math.random() * splashScreenImages.length)];
   return (
     <div
       className="flex flex-col items-center justify-between pt-16 bg-cover bg-center w-full max-w-lg h-[--tg-viewport-height] mx-auto"

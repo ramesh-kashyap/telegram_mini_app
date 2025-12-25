@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { $http } from "@/lib/http";
 import LoadingPage from "@/components/LoadingPage";
-import { Currency } from "lucide-react";
 
 const ICONS = {
   USDT: "https://cryptologos.cc/logos/tether-usdt-logo.svg?v=040",
@@ -70,7 +69,7 @@ export default function Assets() {
 
     const ACTIONS = [
     {
-        label: "Recharge",
+        label: "Deposit",
         icon: "/images/icons8-deposit-48.png", // replace with your icon
         route: "/deposit",
     },

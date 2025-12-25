@@ -7,6 +7,7 @@ export type UserType = {
   id: number;
   last_login_date: string;
   last_name: string;
+  active_status: string;
   level_id: number;
   login_streak: number;
   available_energy: number;

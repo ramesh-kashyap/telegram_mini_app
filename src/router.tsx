@@ -12,6 +12,7 @@ import Withdraw from "./pages/Withdraw";
 import Assets from "./pages/Assets";
 import History from "./pages/History";
 import Upgrade from "./pages/Upgrade";
+import LevelUsers from "./pages/LevelUsers";
 
 const router = createBrowserRouter([
   {
@@ -66,6 +67,10 @@ const router = createBrowserRouter([
       {
         path: "upgrade",
         element: <Upgrade />,
+      },
+      {
+        path: "/team/level/:level",
+        element: <LevelUsers />,
       },
     ],
   },

@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useDebounce } from "@uidotdev/usehooks";
 import { $http } from "@/lib/http";
 import levelConfig from "@/config/level-config";
+import { toast } from "sonner";
 
 export default function UserTap(props: React.HTMLProps<HTMLDivElement>) {
   const userAnimateRef = useRef<HTMLDivElement | null>(null);
@@ -15,22 +16,39 @@ export default function UserTap(props: React.HTMLProps<HTMLDivElement>) {
   const { clicks, addClick, removeClick } = useClicksStore();
   const { UserTap, incraseEnergy, ...user } = useUserStore();
 
-  const tabMe = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!UserTap()) return;
+const tabMe = (e: React.MouseEvent) => {
+  e.preventDefault();
 
-    setClicksCount((prev) => prev + 1);
+  // ❌ NOT ACTIVE → block tap
+  if (user.active_status !== "Active") {
+    Telegram.WebApp.HapticFeedback.notificationOccurred("error");
 
-    addClick({
-      id: new Date().getTime(),
-      value: user.earn_per_tap,
-      style: {
-        top: e.clientY,
-        left: e.clientX + (Math.random() > 0.5 ? 5 : -5),
-      },
-    });
-    animateButton();
-  };
+    // Option 1: show toast
+    toast.error("Please upgrade a package to start earning");
+
+    // Option 2: redirect to upgrade page
+    // window.location.href = "/upgrade";
+
+    return;
+  }
+
+  // ❌ No energy
+  if (!UserTap()) return;
+
+  // ✅ ACTIVE → continue tap
+  setClicksCount((prev) => prev + 1);
+
+  addClick({
+    id: new Date().getTime(),
+    value: user.earn_per_tap,
+    style: {
+      top: e.clientY,
+      left: e.clientX + (Math.random() > 0.5 ? 5 : -5),
+    },
+  });
+
+  animateButton();
+};
 
   const animateButton = () => {
     if (!userTapButtonRef.current) return;

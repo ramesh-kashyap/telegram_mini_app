@@ -17,6 +17,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
   id: 0,
   last_login_date: "",
   last_name: "",
+  active_status: "",
   level_id: 0,
   login_streak: 0,
   multi_tap_level: 0,

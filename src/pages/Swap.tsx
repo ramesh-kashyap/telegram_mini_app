@@ -165,19 +165,19 @@ const swapHistory = swapHistoryRes?.data ?? [];
         {/* SUBMIT */}
         <button
           disabled={
-            swapMutation.isLoading ||
+            swapMutation.isPending ||
             !amount ||
             Number(amount) <= 0
           }
           onClick={() => swapMutation.mutate()}
           className={cn(
             "mt-6 w-full py-3 rounded-xl font-bold text-black transition-all",
-            swapMutation.isLoading || !amount
+            swapMutation.isPending || !amount
               ? "bg-gray-500 cursor-not-allowed"
               : "bg-[#27D46C]"
           )}
         >
-          {swapMutation.isLoading ? "Swapping..." : "Swap"}
+          {swapMutation.isPending ? "Swapping..." : "Swap"}
         </button>
 
 

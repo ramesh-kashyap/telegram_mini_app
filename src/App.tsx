@@ -28,7 +28,7 @@ if (startParam) {
 function App() {
   const userStore = useUserStore();
   const { levels, levelUp } = uesStore();
-  const { user, start_param } = useTelegramInitData();
+  const { user } = useTelegramInitData();
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [isFirstLoad, setIsFirstLoad] = useState(false);
   const balance = useDebounce(userStore.balance, 500);
