@@ -6,8 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function compactNumber(num: number) {
-  return num.toLocaleString(undefined, {
+  // round to 2 decimals safely
+  const rounded = Math.round(num * 100) / 100;
+
+  // format with compact notation
+  return rounded.toLocaleString(undefined, {
     maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
     notation: "compact",
   });
 }

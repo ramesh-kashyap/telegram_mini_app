@@ -5,33 +5,64 @@ import { Link } from "react-router-dom";
 import { useDebounce } from "@uidotdev/usehooks";
 import { $http } from "@/lib/http";
 import levelConfig from "@/config/level-config";
+import { toast } from "sonner";
 
 export default function UserTap(props: React.HTMLProps<HTMLDivElement>) {
   const userAnimateRef = useRef<HTMLDivElement | null>(null);
   const userTapButtonRef = useRef<HTMLButtonElement | null>(null);
+
   const [clicksCount, setClicksCount] = useState(0);
   const debounceClicksCount = useDebounce(clicksCount, 1000);
 
-  const { clicks, addClick, removeClick } = useClicksStore();
-  const { UserTap, incraseEnergy, ...user } = useUserStore();
+  /* ======================
+     STORES (SELECTORS)
+  ====================== */
+  const clicks = useClicksStore((s) => s.clicks);
+  const addClick = useClicksStore((s) => s.addClick);
+  const removeClick = useClicksStore((s) => s.removeClick);
 
+  const UserTapFn = useUserStore((s) => s.UserTap);
+  const incraseEnergy = useUserStore((s) => s.incraseEnergy);
+
+  const earn_per_tap = useUserStore((s) => s.earn_per_tap);
+  const available_energy = useUserStore((s) => s.available_energy);
+  const max_energy = useUserStore((s) => s.max_energy);
+  const active_status = useUserStore((s) => s.active_status);
+  const level = useUserStore((s) => s.level);
+
+  /* ======================
+     TAP HANDLER
+  ====================== */
   const tabMe = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!UserTap()) return;
+
+    // ❌ NOT ACTIVE
+    if (active_status !== "Active") {
+      Telegram.WebApp.HapticFeedback.notificationOccurred("error");
+      toast.error("Please upgrade a package to start earning");
+      return;
+    }
+
+    // ❌ NO ENERGY
+    if (!UserTapFn()) return;
 
     setClicksCount((prev) => prev + 1);
 
     addClick({
-      id: new Date().getTime(),
-      value: user.earn_per_tap,
+      id: Date.now(),
+      value: earn_per_tap,
       style: {
         top: e.clientY,
         left: e.clientX + (Math.random() > 0.5 ? 5 : -5),
       },
     });
+
     animateButton();
   };
 
+  /* ======================
+     ANIMATION
+  ====================== */
   const animateButton = () => {
     if (!userTapButtonRef.current) return;
 
@@ -43,30 +74,39 @@ export default function UserTap(props: React.HTMLProps<HTMLDivElement>) {
     }, 150);
   };
 
+  /* ======================
+     SEND TAPS TO SERVER
+  ====================== */
   useEffect(() => {
     const count = debounceClicksCount;
+    if (!count) return;
+
     setClicksCount(0);
-    if (count === 0) return;
 
     $http
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .post<Record<string, any>>("/clicker/tap", {
+      .post("/clicker/tap", {
         count,
-        energy: user.available_energy,
+        energy: available_energy,
         timestamp: Math.floor(Date.now() / 1000),
       })
       .then(({ data }) => {
         if (data.leveled_up) {
           useUserStore.setState({
-            level: data.level || user.level,
+            level: data.level,
             earn_per_tap: data.earn_per_tap,
             max_energy: data.max_energy,
           });
+          toast.success(`Level up! 🎉`);
         }
       })
-      .catch(() => setClicksCount(count));
-  }, [debounceClicksCount]);
+      .catch(() => {
+        setClicksCount(count);
+      });
+  }, [debounceClicksCount, available_energy]);
 
+  /* ======================
+     ENERGY REGEN
+  ====================== */
   useEffect(() => {
     useClicksStore.setState({ clicks: [] });
 
@@ -76,21 +116,24 @@ export default function UserTap(props: React.HTMLProps<HTMLDivElement>) {
 
     return () => clearInterval(interval);
   }, []);
+
+  /* ======================
+     UI
+  ====================== */
   return (
     <div {...props}>
       <div className="mt-4 mb-8">
         <button
           ref={userTapButtonRef}
           className="flex items-center justify-center mx-auto transition-all rounded-full outline-none select-none disabled:opacity-80 disabled:cursor-not-allowed"
-          disabled={user.available_energy < user.earn_per_tap}
-          // onClick={tabMe}
+          disabled={available_energy < earn_per_tap}
           onPointerUp={tabMe}
         >
           <img
-            src={levelConfig.frogs[user.level?.level || 1]}
-            alt="level image"
-            className="object-contain max-w-full w-80 h-80"
-            style={{ filter: levelConfig.filter[user.level?.level || 1] }}
+            src={levelConfig.frogs[level?.level || 1]}
+            alt="level"
+            className="object-contain w-80 h-80"
+            style={{ filter: levelConfig.filter[level?.level || 1] }}
           />
         </button>
       </div>
@@ -106,28 +149,18 @@ export default function UserTap(props: React.HTMLProps<HTMLDivElement>) {
           </div>
         ))}
       </div>
+
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
-          <img
-            src="/images/coin.png"
-            alt="coin"
-            className="object-contain w-8 h-8"
-          />
+          <img src="/images/coin.png" className="w-8 h-8" />
           <span className="text-xs font-bold">
-            {user.available_energy} / {user.max_energy}
+            {available_energy} / {max_energy}
           </span>
         </div>
-        <Link
-          to={"/boost"}
-          className="flex items-center space-x-2 text-sm font-bold"
-        >
-          <span className="text-xs font-bold">Boost</span>
 
-          <img
-            src="/images/boost.png"
-            alt="boost"
-            className="object-contain w-8 h-8"
-          />
+        <Link to="/boost" className="flex items-center space-x-2 text-sm font-bold">
+          <span className="text-xs font-bold">Boost</span>
+          <img src="/images/boost.png" className="w-8 h-8" />
         </Link>
       </div>
     </div>

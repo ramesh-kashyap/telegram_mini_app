@@ -80,3 +80,7 @@
     transform: translate(-50%, -300%);
   }
 }
+
+.modal-body {
+    height: 100%;
+}

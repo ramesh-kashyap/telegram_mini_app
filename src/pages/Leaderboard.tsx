@@ -1,5 +1,5 @@
 import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
-import { EffectFade, Navigation } from "swiper/modules";
+import { Navigation } from "swiper/modules";
 import SwapPrevIcon from "@/components/icons/SwapPrevIcon";
 import SwapNextIcon from "@/components/icons/SwapNextIcon";
 import { useEffect, useRef, useState } from "react";
@@ -13,146 +13,149 @@ import { uesStore } from "@/store";
 import { Loader2Icon } from "lucide-react";
 
 export default function Leaderboard() {
-  const { balance, level, ...user } = useUserStore();
-  const [activeIndex, setActiveIndex] = useState(0);
+  const { balance, level, id } = useUserStore();
   const { levels } = uesStore();
+  const [activeIndex, setActiveIndex] = useState(0);
   const swiperRef = useRef<SwiperRef | null>(null);
 
   const leaderboard = useQuery({
     queryKey: ["leaderboard", levels?.[activeIndex]?.id],
     queryFn: () =>
       $http.$get<UserType[]>("/clicker/leaderboard", {
-        params: { level_id: levels?.[activeIndex].id },
+        params: { level_id: levels?.[activeIndex]?.id },
       }),
-    staleTime: Infinity,
-    enabled: !!levels?.[activeIndex]?.level,
+    enabled: !!levels?.[activeIndex],
   });
 
+  /** Auto move to user level */
   useEffect(() => {
-    if (level?.level) {
-      const index = levels?.findIndex((item) => item.level === level.level);
-      if (index !== -1) {
-        setActiveIndex(index);
-        if (swiperRef.current) swiperRef.current.swiper.slideTo(index);
-      }
+    if (!level || !levels?.length) return;
+    const index = levels.findIndex((l) => l.level === level.level);
+    if (index !== -1) {
+      setActiveIndex(index);
+      swiperRef.current?.swiper.slideTo(index, 0);
     }
-  }, []);
+  }, [levels, level]);
 
   return (
-    <div className="flex flex-col justify-end bg-[url('/images/bg.png')] bg-cover flex-1">
-      <div className="flex flex-col flex-1 w-full h-full px-6 py-8 pb-24 mt-12 modal-body">
-        <div className="">
+    <div className="flex flex-col bg-[url('/images/bg.png')] bg-cover flex-1">
+      <div className="flex flex-col flex-1 px-6 py-8 pb-24 mt-12 modal-body">
+
+        {/* ================= SLIDER ================= */}
+        <div className="relative">
           <Swiper
             ref={swiperRef}
-            spaceBetween={30}
-            modules={[EffectFade, Navigation]}
-            effect={"fade"}
-            className="rounded-xl"
+            modules={[Navigation]}
+            spaceBetween={20}
+            slidesPerView={1}
+            onSlideChange={(s) => setActiveIndex(s.activeIndex)}
+            className="rounded-2xl overflow-hidden"
             navigation={{
-              enabled: true,
-              nextEl: ".custom-swiper-button-next",
-              prevEl: ".custom-swiper-button-prev",
+              nextEl: ".swiper-next",
+              prevEl: ".swiper-prev",
             }}
-            onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
           >
-            {levels?.map((item, i) => (
-              <SwiperSlide key={`slide-${i}`}>
+            {levels?.map((item) => (
+              <SwiperSlide key={item.id}>
                 <div
-                  className="py-4 bg-center bg-cover rounded-xl"
+                  className="h-[340px] rounded-2xl flex flex-col items-center justify-center text-white"
                   style={{
-                    backgroundImage: `url('${levelConfig.bg[item.level]}')`,
+                    backgroundImage: `url(${levelConfig.bg[item.level]})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
                   }}
                 >
                   <img
                     src={levelConfig.frogs[item.level]}
-                    alt="level image"
-                    className="object-contain mx-auto w-60 h-60"
-                    style={{
-                      filter: levelConfig.filter[item.level],
-                    }}
+                    className="w-52 h-52 object-contain"
+                    style={{ filter: levelConfig.filter[item.level] }}
                   />
-                  <p className="mt-4 text-lg text-center text-white">
+
+                  <p className="mt-3 text-xl font-bold">
                     {item.name}
                   </p>
-                  <p className="text-sm text-center text-white/70">
+                  <p className="text-sm opacity-80">
                     From {compactNumber(item.from_balance)}
                   </p>
                 </div>
               </SwiperSlide>
             ))}
-            <button className="absolute z-[999] left-2.5 flex items-center justify-center text-white custom-swiper-button-prev top-1/2 -translate-y-1/2 disabled:opacity-30">
-              <SwapPrevIcon />
-            </button>
-            <button className="absolute z-[999] right-2.5 flex items-center justify-center text-white custom-swiper-button-next top-1/2 -translate-y-1/2 disabled:opacity-30">
-              <SwapNextIcon />
-            </button>
           </Swiper>
+
+          {/* NAV BUTTONS */}
+          <button className="swiper-prev absolute left-2 top-1/2 -translate-y-1/2 z-10">
+            <SwapPrevIcon />
+          </button>
+          <button className="swiper-next absolute right-2 top-1/2 -translate-y-1/2 z-10">
+            <SwapNextIcon />
+          </button>
         </div>
-        {levels?.[activeIndex] &&
-          levels?.[activeIndex]?.level === level?.level && (
-            <div className="mt-2">
-              <div className="flex items-center justify-between gap-2 ">
-                <div className="flex items-center text-2xl font-bold">
-                  <span>{level.name}</span>
-                </div>
-                <span className="font-medium">
-                  {compactNumber(balance)}/{compactNumber(level!.to_balance)}
+
+        {/* ================= PROGRESS ================= */}
+        {levels?.[activeIndex]?.level === level?.level && (
+          <div className="mt-4">
+            <div className="flex justify-between text-sm font-semibold">
+              <span>{level.name}</span>
+              <span>
+                {compactNumber(balance)} / {compactNumber(level.to_balance)}
+              </span>
+            </div>
+
+            <div className="mt-2 h-3 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#FBEDE0] to-[#D36224]"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (balance / level.to_balance) * 100
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ================= LEADERBOARD ================= */}
+        <div className="mt-6 flex-1 overflow-y-auto divide-y divide-white/10 rounded-xl bg-black/20">
+          {leaderboard.isLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader2Icon className="animate-spin" />
+            </div>
+          ) : leaderboard.data?.length ? (
+            leaderboard.data.map((u, i) => (
+              <div
+                key={u.id}
+                className="flex items-center px-4 py-3 gap-3"
+              >
+                <span className="w-6 text-primary font-bold">
+                  {i + 1}
                 </span>
+
+                <span className="flex-1 truncate">
+                  {u.first_name} {u.last_name}
+                </span>
+
+                <div className="flex items-center gap-1">
+                  <img src="/images/coin.png" className="w-4 h-4" />
+                  <span className="text-sm">
+                    {compactNumber(u.balance)}
+                  </span>
+                </div>
               </div>
-              <div className="bg-[#FFDAA3]/10 border overflow-hidden border-[#FFDAA3]/10 rounded-full mt-2 h-4 w-full">
-                <div
-                  className="bg-[linear-gradient(180deg,#FBEDE0_0%,#F7B87D_21%,#F3A155_52%,#E6824B_84%,#D36224_100%)] h-full"
-                  style={{
-                    width: `${(balance / level.to_balance) * 100}%`,
-                  }}
-                />
-              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 opacity-60">
+              No data
             </div>
           )}
-        <div className="relative flex-1 mt-6">
-          <div className="absolute inset-0 w-full h-full divide-y divide-[#D9D9D9]/10 overflow-y-auto">
-            {leaderboard.isLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2Icon className="w-12 h-12 animate-spin text-primary" />
-              </div>
-            ) : leaderboard.data && leaderboard.data?.length > 0 ? (
-              leaderboard.data.map((item, key) => (
-                <div key={key} className="flex items-center py-2 gap-2.5 px-4">
-                  <span className="w-6 text-left text-primary">{key + 1}</span>
-                  <span>
-                    {item.first_name} {item.last_name}
-                  </span>
-                  <div className="flex items-center gap-2 ml-auto">
-                    <img
-                      src="/images/coin.png"
-                      alt="coin"
-                      className="object-contain w-5 h-5"
-                    />
-                    <span>{compactNumber(item.production_per_hour)}</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex items-center justify-center h-full text-white">
-                No data
-              </div>
-            )}
-          </div>
         </div>
-        {levels &&
-          levels[activeIndex]?.level === level?.level &&
-          !leaderboard.data?.some((item) => item.id === user.id) && (
-            <div className="mt-2 flex items-center py-2 gap-2.5 px-4 bg-[#FFAB5D1A] rounded-xl">
-              <span className="w-6 text-right text-primary">+99</span>
+
+        {/* ================= YOU ROW ================= */}
+        {levels?.[activeIndex]?.level === level?.level &&
+          !leaderboard.data?.some((u) => u.id === id) && (
+            <div className="mt-3 px-4 py-3 bg-[#FFAB5D1A] rounded-xl flex justify-between">
               <span>You</span>
-              <div className="flex items-center gap-2 ml-auto">
-                <img
-                  src="/images/coin.png"
-                  alt="coin"
-                  className="object-contain w-5 h-5"
-                />
-                <span>{balance}</span>
-              </div>
+              <span>{compactNumber(balance)}</span>
             </div>
           )}
       </div>

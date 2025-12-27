@@ -4,10 +4,58 @@ import { Link } from "react-router-dom";
 import UserGameDetails from "@/components/UserGameDetails";
 import levelConfig from "@/config/level-config";
 import { uesStore } from "@/store";
+import { useEffect } from "react";
 
 export default function Home() {
   const user = useUserStore();
   const { maxLevel } = uesStore();
+
+  const balance = useUserStore((s) => s.balance);
+  useEffect(() => {
+    const hasSpoken = localStorage.getItem("welcome_spoken");
+    if (!hasSpoken) {
+      setTimeout(() => {
+        speakHindi("नमस्ते किसान"); // Hindi
+        // OR
+        // speakHindi("Hello Farmers"); // English in Indian accent (fallback)
+      }, 800);
+      localStorage.setItem("welcome_spoken", "1");
+    }
+  }, []);
+
+  function speakHindi(text: string) {
+    if (!("speechSynthesis" in window)) return;
+
+    const speak = () => {
+      const voices = window.speechSynthesis.getVoices();
+
+      // find Hindi / Indian voice
+      const hindiVoice =
+        voices.find(v => v.lang === "hi-IN") ||
+        voices.find(v => v.lang.startsWith("hi")) ||
+        voices.find(v => v.name.toLowerCase().includes("india")) ||
+        voices[0]; // fallback
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = hindiVoice;
+      utterance.lang = "hi-IN";
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    };
+
+    // 🟢 voices already loaded
+    if (window.speechSynthesis.getVoices().length > 0) {
+      speak();
+    } else {
+      // 🔁 wait until voices are loaded
+      window.speechSynthesis.onvoiceschanged = speak;
+    }
+  }
+
   return (
     <div
       className="flex-1 px-5 pb-20 bg-center bg-cover"
@@ -35,7 +83,7 @@ export default function Home() {
           className="object-contain w-20 h-20"
         />
         <span className="text-3xl font-bold text-gradient">
-          {Math.floor(user.balance)?.toLocaleString()}
+          {Math.floor(balance)?.toLocaleString()}
         </span>
       </div>
       <div className="">

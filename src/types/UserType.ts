@@ -7,6 +7,7 @@ export type UserType = {
   id: number;
   last_login_date: string;
   last_name: string;
+  active_status: string;
   level_id: number;
   login_streak: number;
   available_energy: number;
@@ -36,4 +37,12 @@ export type BoosterType = {
 export type DailyBoosterType = {
   uses_today: number;
   next_available_at: string | null;
+};
+
+export type HistoryType = {
+  id: number;
+  type: string;
+  amount: number;
+  token: "USDT" | "OFT";
+  created_at: string;
 };

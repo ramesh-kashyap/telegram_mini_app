@@ -11,7 +11,7 @@ export default function Price({ amount, className, ...props }: Props) {
       {...props}
     >
       <img
-        src="/images/coin.png"
+        src="/images/logo.png"
         alt="coin"
         className="object-contain w-5 h-5"
       />

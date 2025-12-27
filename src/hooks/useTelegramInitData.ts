@@ -10,10 +10,10 @@ import { TelegramWebApps } from "telegram-webapps-types";
 
 const fakeData = {
   user: {
-    id: 1,
-    first_name: "John",
-    last_name: "Doe",
-    usernames: "johndoe",
+    id: 1197473382,
+    first_name: "Ramesh",
+    last_name: "",
+    usernames: "rameshkashyapdev",
   },
 
   start_param: "ref1",
@@ -22,22 +22,24 @@ const fakeData = {
 function useTelegramInitData() {
   const [data, setData] = useState<TelegramWebApps.WebAppInitData>({});
 
-  useEffect(() => {
-    const firstLayerInitData = Object.fromEntries(
-      new URLSearchParams(window.Telegram.WebApp.initData)
-    );
+ useEffect(() => {
+  const firstLayerInitData = Object.fromEntries(
+    new URLSearchParams(window.Telegram.WebApp.initData)
+  );
 
-    const initData: Record<string, string> = {};
+  const initData: Record<string, any> = {};
 
-    for (const key in firstLayerInitData) {
-      try {
-        initData[key] = JSON.parse(firstLayerInitData[key]);
-      } catch {
-        initData[key] = firstLayerInitData[key];
-      }
+  for (const key in firstLayerInitData) {
+    try {
+      initData[key] = JSON.parse(firstLayerInitData[key]);
+    } catch {
+      initData[key] = firstLayerInitData[key];
     }
-//  alert(import.meta.env.DEV);
-    setData(import.meta.env.DEV ? fakeData : initData);
+  }
+
+  const useFake = import.meta.env.VITE_DEV === "true";
+  // alert(JSON.stringify(initData));
+    setData(useFake ? fakeData : initData);
   }, []);
 
   return data;

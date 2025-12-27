@@ -17,18 +17,24 @@ export const useUserStore = create<UserStore>((set, get) => ({
   id: 0,
   last_login_date: "",
   last_name: "",
+  active_status: "",
   level_id: 0,
   login_streak: 0,
   multi_tap_level: 0,
   production_per_hour: 0,
   updated_at: "",
   username: "",
-  UserTap() {
-    if (get().available_energy < get().earn_per_tap) return false;
+ UserTap() {
+    const earn = Number(get().earn_per_tap);
+    const energy = Number(get().available_energy);
+
+    if (energy < earn) return false;
+
     set((state) => ({
-      available_energy: state.available_energy - state.earn_per_tap,
-      balance: state.balance + state.earn_per_tap,
+      available_energy: Number(state.available_energy) - earn,
+      balance: Number(state.balance) + earn, // ✅ FIX
     }));
+
     return true;
   },
   incraseEnergy: (value) => {

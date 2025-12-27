@@ -13,18 +13,28 @@ import { toast } from "react-toastify";
 import useTelegramInitData from "./hooks/useTelegramInitData";
 
 const webApp = window.Telegram.WebApp;
-const isDisktop = import.meta.env.DEV
+const isDisktop = import.meta.env.VITE_DEV
   ? false
   : Telegram.WebApp.platform === "tdesktop";
+const tg = window.Telegram.WebApp;
+const startParam = tg.initDataUnsafe?.start_param;
 
-  // alert(import.meta.env.DEV);
+if (startParam) {
+  localStorage.setItem("referral", startParam);
+}
+
+
+// alert(import.meta.env.VITE_DEV);
 function App() {
   const userStore = useUserStore();
+
+  // alert(JSON.stringify(userStore.level?.level));
   const { levels, levelUp } = uesStore();
-  const { user, start_param } = useTelegramInitData();
+  const { user } = useTelegramInitData();
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [isFirstLoad, setIsFirstLoad] = useState(false);
   const balance = useDebounce(userStore.balance, 500);
+
 
   useEffect(() => {
     webApp.setHeaderColor("#000");
@@ -45,32 +55,38 @@ function App() {
 
   useEffect(() => {
     if (!balance || !userStore.level?.level) return;
-    const userLevel = userStore.level.level;
-    const newLevels = levels.filter(
-      (level) => balance >= level.from_balance && level.level > userLevel
-    );
-    const maxLevel = newLevels.reduce(
-      (prev, current) => (prev.level > current.level ? prev : current),
-      newLevels[0]
-    );
-    if (
-      userStore.level?.level &&
-      maxLevel?.level &&
-      maxLevel.level > userStore.level.level
-    ) {
+
+    const currentLevel = userStore.level.level;
+
+    // 1️⃣ Only levels user QUALIFIES for
+    const eligibleLevels = levels
+      .filter((lvl) => balance >= Number(lvl.from_balance))
+      .sort((a, b) => b.level - a.level); // highest first
+
+    if (!eligibleLevels.length) return;
+
+    const nextLevel = eligibleLevels[0];
+
+    // 2️⃣ Only upgrade if higher than current
+    if (nextLevel.level > currentLevel) {
+      const levelDiff = nextLevel.level - currentLevel;
+
       useUserStore.setState((state) => {
-        state.level = maxLevel;
-        state.max_energy += newLevels.length * levelUp.max_energy;
-        state.earn_per_tap += newLevels.length * levelUp.earn_per_tap;
+        state.level = nextLevel;
+        state.max_energy += levelDiff * levelUp.max_energy;
+        state.earn_per_tap += levelDiff * levelUp.earn_per_tap;
         return state;
       });
-      toast.success(`You have leveled up to level ${maxLevel.level}`);
+
+      toast.success(`🎉 You leveled up to ${nextLevel.name}`);
     }
   }, [balance, levels]);
 
   useEffect(() => {
-    if (!user) return () => {};
+    if (!user) return () => { };
+    const referral = localStorage.getItem("referral");
 
+    // alert(JSON.stringify({ referral }));
     const signIn = async () => {
       if (localStorage.getItem("token") === null) {
         const { data } = await $http.post<{
@@ -83,7 +99,7 @@ function App() {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           username: user.username,
-          referred_by: start_param?.replace("ref", ""),
+          referred_by: referral?.replace("ref", ""),
         });
         setBearerToken(data.token);
         setIsFirstLoad(data.first_login);
@@ -117,9 +133,12 @@ function App() {
     signIn().then(() => setShowSplashScreen(false));
   }, [user]);
 
+
   if (!user || isDisktop) return <PlayOnYourMobile />;
 
   if (showSplashScreen) return <SplashScreen />;
+
+
 
   if (isFirstLoad)
     return <FirstTimeScreen startGame={() => setIsFirstLoad(false)} />;

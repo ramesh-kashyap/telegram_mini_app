@@ -8,7 +8,7 @@ export type TaskType = {
   reward_coins: number;
   action_name: string;
   is_submitted: boolean;
-  is_rewarded: boolean;
+  is_rewarded: number | boolean;
   submitted_at: string | null;
 };
 
@@ -29,4 +29,14 @@ export type ReferralTaskType = {
   number_of_referrals: number;
   reward: number;
   is_completed?: boolean | null;
+};
+
+export type DepositType = {
+  id: number;
+  network: "BSC" | "TRON";
+  currency: "USDT";
+  address: string;
+  qr_code: string;
+  min_amount: number;
+  status?: "active" | "expired";
 };
