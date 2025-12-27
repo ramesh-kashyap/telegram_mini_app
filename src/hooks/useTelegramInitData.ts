@@ -10,10 +10,10 @@ import { TelegramWebApps } from "telegram-webapps-types";
 
 const fakeData = {
   user: {
-    id: 1,
-    first_name: "John",
-    last_name: "Doe",
-    usernames: "johndoe",
+    id: 1197473382,
+    first_name: "Ramesh",
+    last_name: "",
+    usernames: "rameshkashyapdev",
   },
 
   start_param: "ref1",

@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { $http } from "@/lib/http";
 import { cn } from "@/lib/utils";
 import LoadingPage from "@/components/LoadingPage";
+import { useUserStore } from "../store/user-store";
+
 
 type PackageType = {
   id: number;
@@ -62,6 +64,10 @@ console.log("Purchased Packages:", purchasedPackages);
       toast.success("Package purchased successfully 🎉");
       setSelected(null);
 
+      // ✅ Activate user immediately
+      useUserStore.setState({
+        active_status: "Active",
+      });
       // 🔥 refresh balances & purchased packages
       queryClient.invalidateQueries({ queryKey: ["balances"] });
       queryClient.invalidateQueries({ queryKey: ["my-packages"] });

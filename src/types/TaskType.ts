@@ -8,7 +8,7 @@ export type TaskType = {
   reward_coins: number;
   action_name: string;
   is_submitted: boolean;
-  is_rewarded: boolean;
+  is_rewarded: number | boolean;
   submitted_at: string | null;
 };
 

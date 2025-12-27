@@ -8,7 +8,7 @@ export default function PlayOnYourMobile() {
         className="object-contain max-w-xs rounded-xl"
       />
       <a href="#" className="text-2xl font-semibold">
-        @CoolFrogBot
+        @oftokennnn_bot
       </a>
     </div>
   );

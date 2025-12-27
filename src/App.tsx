@@ -27,6 +27,8 @@ if (startParam) {
 // alert(import.meta.env.VITE_DEV);
 function App() {
   const userStore = useUserStore();
+
+  // alert(JSON.stringify(userStore.level?.level));
   const { levels, levelUp } = uesStore();
   const { user } = useTelegramInitData();
   const [showSplashScreen, setShowSplashScreen] = useState(true);
@@ -53,26 +55,30 @@ function App() {
 
   useEffect(() => {
     if (!balance || !userStore.level?.level) return;
-    const userLevel = userStore.level.level;
-    const newLevels = levels.filter(
-      (level) => balance >= level.from_balance && level.level > userLevel
-    );
-    const maxLevel = newLevels.reduce(
-      (prev, current) => (prev.level > current.level ? prev : current),
-      newLevels[0]
-    );
-    if (
-      userStore.level?.level &&
-      maxLevel?.level &&
-      maxLevel.level > userStore.level.level
-    ) {
+
+    const currentLevel = userStore.level.level;
+
+    // 1️⃣ Only levels user QUALIFIES for
+    const eligibleLevels = levels
+      .filter((lvl) => balance >= Number(lvl.from_balance))
+      .sort((a, b) => b.level - a.level); // highest first
+
+    if (!eligibleLevels.length) return;
+
+    const nextLevel = eligibleLevels[0];
+
+    // 2️⃣ Only upgrade if higher than current
+    if (nextLevel.level > currentLevel) {
+      const levelDiff = nextLevel.level - currentLevel;
+
       useUserStore.setState((state) => {
-        state.level = maxLevel;
-        state.max_energy += newLevels.length * levelUp.max_energy;
-        state.earn_per_tap += newLevels.length * levelUp.earn_per_tap;
+        state.level = nextLevel;
+        state.max_energy += levelDiff * levelUp.max_energy;
+        state.earn_per_tap += levelDiff * levelUp.earn_per_tap;
         return state;
       });
-      toast.success(`You have leveled up to level ${maxLevel.level}`);
+
+      toast.success(`🎉 You leveled up to ${nextLevel.name}`);
     }
   }, [balance, levels]);
 
@@ -126,13 +132,13 @@ function App() {
 
     signIn().then(() => setShowSplashScreen(false));
   }, [user]);
-  
+
 
   if (!user || isDisktop) return <PlayOnYourMobile />;
 
   if (showSplashScreen) return <SplashScreen />;
 
-   
+
 
   if (isFirstLoad)
     return <FirstTimeScreen startGame={() => setIsFirstLoad(false)} />;

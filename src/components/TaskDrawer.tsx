@@ -53,6 +53,9 @@ export default function TaskDrawer({
     },
   });
 
+
+// alert(JSON.stringify({ submitMutation }));
+
   if (!task) return null;
   return (
     <Drawer {...props}>
@@ -88,14 +91,13 @@ export default function TaskDrawer({
         </a>
       </Button>
 
-      {!task.is_rewarded && (
+
+      {task.is_rewarded==0 && (
         <Button
           className="w-full mt-6"
-          disabled={
-            claimMutation.isPending ||
+          disabled={claimMutation.isPending ||
             !task.is_submitted ||
-            dayjs().isBefore(dayjs(task.submitted_at).add(60, "m"))
-          }
+            dayjs().isBefore(dayjs(task.submitted_at).add(60, "m"))}
           onClick={() => claimMutation.mutate()}
         >
           {claimMutation.isPending && (
@@ -103,6 +105,7 @@ export default function TaskDrawer({
           )}
           Check
         </Button>
+        
       )}
     </Drawer>
   );

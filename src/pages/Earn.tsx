@@ -76,7 +76,7 @@ export default function Earn() {
                       <CheckIcon className="w-6 h-6 text-[#27D46C]" />
                     ) : undefined
                   }
-                  disabled={item.is_rewarded}
+                  disabled={item.is_rewarded==0 ? false : true}
                 />
               ))}
             </div>
@@ -100,6 +100,8 @@ export default function Earn() {
             <p className="mt-8 font-medium text-center">All Tasks</p>
             <div className="mt-4 space-y-2">
               {otherTasks.map((item) => (
+
+                
                 <ListItem
                   key={item.id}
                   title={item.name}
@@ -110,9 +112,9 @@ export default function Earn() {
                   className={cn(
                     "disabled:opacity-50 disabled:mix-blend-luminosity"
                   )}
-                  disabled={item.is_rewarded}
+                  disabled={item.is_rewarded==0 ? false : true}
                   action={
-                    item.is_rewarded ? (
+                    item.is_rewarded==0 ? (
                       <CheckIcon className="w-6 h-6 text-[#27D46C]" />
                     ) : undefined
                   }
